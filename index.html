@@ -111,6 +111,19 @@
   </div>
 </div>
 
+<div class="card" id="cardRaw">
+  <h2>Выгрузки в Telegram</h2>
+  <div class="hint" style="margin:0 0 6px">Исходные файлы отчётов. Своды отправляются отдельно (выбор выше). Если не отправлять — файлы остаются на компьютере.</div>
+  <div id="raw2425Wrap">
+    <label class="field">Отчёты 24 / 25</label>
+    <div class="row" id="raw2425"></div>
+  </div>
+  <div id="raw411Wrap">
+    <label class="field">Отчёты 4 / 11</label>
+    <div class="row" id="raw411"></div>
+  </div>
+</div>
+
 <div class="card">
   <h2>Когда</h2>
   <div class="row" id="when"></div>
@@ -145,7 +158,7 @@ const WHEN = [["now","Сейчас"],["once","Разово"],["daily","Ежед�
 const year0 = new Date().getFullYear();
 let st = {
   r: ["24","25"], start: `${year0}-01-01`, split: "quarter", year: year0,
-  monthsAll: true, months: [], sel: [], svod: "tg", kdu: "tg",
+  monthsAll: true, months: [], sel: [], svod: "tg", kdu: "tg", f2: false, f4: true,
   when: "now", onceDate: "", onceTime: "", dailyTime: "",
 };
 try {   // запоминаем прошлые настройки на этом телефоне
@@ -262,6 +275,13 @@ function render() {
   $("kduWrap").classList.toggle("hidden", !s411);
   chips($("svod"), SVOD, v => st.svod === v, v => st.svod = v, true);
   chips($("kdu"), SVOD, v => st.kdu === v, v => st.kdu = v, true);
+  const any2425 = has("24") || has("25"), any411 = has("4") || has("11");
+  $("cardRaw").classList.toggle("hidden", !(any2425 || any411));
+  $("raw2425Wrap").classList.toggle("hidden", !any2425);
+  $("raw411Wrap").classList.toggle("hidden", !any411);
+  const RAW = [["1","Отправлять"],["0","Не отправлять"]];
+  chips($("raw2425"), RAW, v => (v === "1") === st.f2, v => st.f2 = (v === "1"), true);
+  chips($("raw411"), RAW, v => (v === "1") === st.f4, v => st.f4 = (v === "1"), true);
   chips($("when"), WHEN, v => st.when === v, v => st.when = v, true);
   $("onceWrap").classList.toggle("hidden", st.when !== "once");
   $("dailyWrap").classList.toggle("hidden", st.when !== "daily");
@@ -288,7 +308,7 @@ function buildPayload() {
   }
   const p = {v: 1, lv: DATA.ver, r, s: dmy(st.start || `${year0}-01-01`), sp: st.split,
              y: Number(st.year) || year0, m: st.monthsAll ? null : st.months,
-             mo: st.sel, sv: st.svod, kd: st.kdu, sch};
+             mo: st.sel, sv: st.svod, kd: st.kdu, f2: st.f2 ? 1 : 0, f4: st.f4 ? 1 : 0, sch};
   const json = JSON.stringify(p);
   if (json.length > 4000) errs.push("Слишком много МО в одном задании — разбейте на два.");
   return {errs, json};
